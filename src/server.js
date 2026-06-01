@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 require("dotenv").config();
 const { connectDB } = require("./config/db");
+const { loginLimiter, apiLimiter } = require("./middleware/rateLimiter");
+
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
 const employeeRoutes = require("./routes/employees");
@@ -10,22 +13,21 @@ const hrRoutes = require("./routes/hr");
 const managerRoutes = require("./routes/manager");
 const employeePortalRoutes = require("./routes/employeePortal");
 const reportRoutes = require("./routes/reports");
-const { loginLimiter, apiLimiter } = require("./middleware/rateLimiter");
-const helmet = require("helmet");
 
 const app = express();
 
-app.use(cors({
+const corsOptions = {
   origin: process.env.CLIENT_URL,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
-}));
-app.options("*", cors());
+};
+
+app.use(helmet());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use("/api", apiLimiter);
 app.use("/api/auth/login", loginLimiter);
-app.use(helmet());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
